@@ -1,0 +1,67 @@
+version: 2
+
+models:
+  - name: dim_potions
+    description: Potion dimension — one row per SKU.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: potion_sku
+        data_type: varchar
+        description: Primary key — potion SKU.
+        data_tests: [unique, not_null]
+        entity:
+          type: primary
+          name: potion
+      - name: potion_name
+        data_type: varchar
+        description: Potion display name.
+        dimension:
+          type: categorical
+      - name: category
+        data_type: varchar
+        description: Potion category (lowercased).
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [healing, clarity, luck, strength, invisibility, love]
+        dimension:
+          type: categorical
+      - name: potency
+        data_type: integer
+        description: Potency rating, 1-10.
+        dimension:
+          type: categorical
+      - name: shelf_life_days
+        data_type: integer
+        description: Shelf life in days.
+      - name: is_regulated
+        data_type: boolean
+        description: Whether the potion is regulated.
+        dimension:
+          type: categorical
+      - name: base_price_copper
+        data_type: integer
+        description: List price in copper pieces.
+      - name: base_price_gold
+        data_type: number(38, 2)
+        description: List price in gold crowns.
+      - name: introduced_at
+        data_type: date
+        description: Date the potion was introduced.
+        granularity: day
+        dimension:
+          type: time
+    semantic_model:
+      enabled: true
+      name: dim_potions
+    agg_time_dimension: introduced_at
+    metrics:
+      - name: total_potions
+        description: Count of potions in the current product catalog.
+        type: simple
+        label: Total potions
+        agg: count
+        expr: potion_sku
+        agg_time_dimension: introduced_at

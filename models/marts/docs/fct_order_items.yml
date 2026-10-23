@@ -1,0 +1,87 @@
+version: 2
+
+models:
+  - name: fct_order_items
+    description: Line-grain fact — one row per potion per order. Line-grain semantic model over fct_order_items.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: order_item_id
+        data_type: varchar
+        description: Primary key — line item identifier.
+        data_tests: [unique, not_null]
+        entity:
+          type: primary
+          name: order_item
+      - name: order_id
+        data_type: varchar
+        description: FK to fct_orders.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('fct_orders')
+                field: order_id
+        entity:
+          type: foreign
+          name: order_id
+      - name: potion_sku
+        data_type: varchar
+        description: FK to dim_potions.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_potions')
+                field: potion_sku
+        entity:
+          type: foreign
+          name: potion
+      - name: customer_id
+        data_type: varchar
+        description: FK to dim_wizards (denormalized from order).
+        entity:
+          type: foreign
+          name: customer
+      - name: shop_id
+        data_type: varchar
+        description: FK to dim_shops (denormalized from order).
+        entity:
+          type: foreign
+          name: shop
+      - name: order_status
+        data_type: varchar
+        description: Current parent-order lifecycle status, lowercased.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [completed, returned, cancelled, placed]
+        dimension:
+          type: categorical
+      - name: quantity
+        data_type: integer
+      - name: unit_price_gold
+        data_type: number(38, 2)
+      - name: line_revenue_gold
+        data_type: number(38, 2)
+        data_tests: [not_null]
+      - name: ordered_at
+        data_type: timestamp_ntz
+      - name: ordered_date
+        data_type: date
+        dimension:
+          type: time
+        granularity: day
+    semantic_model:
+      enabled: true
+      name: fct_order_items
+    agg_time_dimension: ordered_date
+    metrics:
+      - name: total_units_sold
+        description: Potion units on completed orders.
+        type: simple
+        label: Total units sold
+        agg: sum
+        agg_time_dimension: ordered_date
+        expr: quantity
+        filter: |
+          {{ Dimension('order_item__order_status') }} = 'completed'

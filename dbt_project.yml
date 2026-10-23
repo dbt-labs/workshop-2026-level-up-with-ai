@@ -1,0 +1,43 @@
+name: "merlinco_apothecaries"
+version: "1.0.0"
+config-version: 2
+
+profile: "merlinco_apothecaries"
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+seed-paths: ["seeds/medium_data"]
+test-paths: ["tests"]
+snapshot-paths: ["snapshots"]
+analysis-paths: ["analyses"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+vars:
+  date_spine_start: "2023-01-01"
+  date_spine_end: "2027-01-01"
+
+models:
+  merlinco_apothecaries:
+    +database: analytics
+    +static_analysis: strict
+
+    staging:
+      +materialized: view
+      +schema: ai_staging
+    intermediate:
+      +materialized: ephemeral
+    marts:
+      +materialized: table
+      +schema: ai_marts
+
+seeds:
+  +enabled: true
+  merlinco_apothecaries:
+    +database: analytics
+    +schema: raw
+    # Preserve raw text quirks so staging owns typing and cleanup.
+    +quote_columns: false

@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: stg_alembic_ops__shops
+    description: >
+      One row per shop (15 shops, 3 per region). `region` is the canonical
+      spelling used to conform customers.home_region upstream.
+    columns:
+      - name: shop_id
+        description: Primary key — shop identifier (SHP-01).
+        data_tests: [unique, not_null]
+      - name: shop_name
+        description: Shop display name.
+        data_tests: [not_null]
+      - name: region
+        description: Canonical region (five values).
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["Northern Reaches", "Ember Coast", "Silverwood", "The Marshlands", "Crystal Vale"]
+
+  - name: stg_alembic_ops__brew_events
+    description: Production batches at one row per brew.
+    columns:
+      - name: brew_id
+        description: Primary key — brew identifier.
+        data_tests: [unique, not_null]

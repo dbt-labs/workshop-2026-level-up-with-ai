@@ -1,0 +1,66 @@
+version: 2
+
+models:
+  - name: int_orders_with_payments
+    description: >
+      Order grain enriched with line-item totals, rolled-up payment behavior,
+      and conformed customer/fulfillment region context (net revenue, amount
+      paid, split/failed/refund flags).
+    columns:
+      - name: order_id
+        description: Primary key — order identifier.
+        data_tests: [unique, not_null]
+      - name: is_home_region_order
+        description: True when the fulfilling shop is in the customer's conformed home region.
+        data_tests: [not_null]
+      - name: net_revenue_gold
+        description: Gross line revenue minus order-level discount, in gold.
+        data_tests: [not_null]
+
+  - name: int_memberships_current
+    description: >
+      Current guild membership per customer (SCD2 collapsed to the open row),
+      with guild name and tier joined in.
+    columns:
+      - name: customer_id
+        description: Primary key — one current membership per customer.
+        data_tests: [unique, not_null]
+      - name: tier
+        description: Current membership tier, lowercased.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [apprentice, adept, archmage]
+
+  - name: int_customers_with_current_membership
+    description: >
+      Customer grain enriched with current guild membership, retaining customers
+      without an active membership.
+    columns:
+      - name: customer_id
+        description: Primary key — customer identifier.
+        data_tests: [unique, not_null]
+
+  - name: int_order_items_with_order_context
+    description: >
+      Order-item grain enriched with parent-order customer, shop, status, and
+      timestamp context for the order-item fact.
+    columns:
+      - name: order_item_id
+        description: Primary key — order-item identifier.
+        data_tests: [unique, not_null]
+      - name: order_status
+        description: Current parent-order lifecycle status, lowercased.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [completed, returned, cancelled, placed]
+
+  - name: int_payments_with_order_context
+    description: >
+      Payment-attempt grain enriched with parent-order customer context, retaining
+      split payments, failures, and refunds as separate rows.
+    columns:
+      - name: payment_id
+        description: Primary key — payment-attempt identifier.
+        data_tests: [unique, not_null]

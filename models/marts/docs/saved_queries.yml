@@ -1,0 +1,19 @@
+version: 2
+
+saved_queries:
+  - name: monthly_regional_sales_performance
+    description: Completed-order sales performance by month, fulfillment region, and whether the order was fulfilled in the customer's home region.
+    label: Monthly regional sales performance
+    query_params:
+      metrics:
+        - total_orders
+        - total_net_revenue
+        - average_order_value
+      group_by:
+        - "TimeDimension('order_id__ordered_date', 'month')"
+        - "Dimension('order_id__fulfillment_region')"
+        - "Dimension('order_id__is_home_region_order')"
+    exports:
+      - name: monthly_regional_sales_performance
+        config:
+          export_as: table

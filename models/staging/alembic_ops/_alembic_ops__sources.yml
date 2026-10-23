@@ -1,0 +1,24 @@
+version: 2
+
+# Raw Alembic Ops tables as dbt sources. The schema follows the same default
+# naming convention as the seeds: <target.schema>_raw.
+
+sources:
+  - name: alembic_ops
+    description: "Alembic Ops — shop and brew operations."
+    database: analytics
+    schema: "{{ target.schema }}_raw"
+    tables:
+      - name: raw_shops
+        description: "Shops (15 rows, 3 per region). region is the canonical spelling."
+        columns:
+          - name: shop_id
+            description: Primary key — shop identifier (SHP-01).
+            data_tests: [unique, not_null]
+
+      - name: raw_brew_events
+        description: "Production batches — one row per brew."
+        columns:
+          - name: brew_id
+            description: Primary key — brew identifier (BRW-00001).
+            data_tests: [unique, not_null]

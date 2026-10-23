@@ -1,0 +1,108 @@
+version: 2
+
+models:
+  - name: fct_brews
+    description: Brew fact with one row per production batch.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: brew_id
+        data_type: varchar
+        description: Primary key — brew identifier.
+        data_tests: [unique, not_null]
+        entity:
+          type: primary
+          name: brew
+      - name: potion_sku
+        data_type: varchar
+        description: Foreign key to dim_potions.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_potions')
+                field: potion_sku
+        entity:
+          type: foreign
+          name: potion
+      - name: shop_id
+        data_type: varchar
+        description: Foreign key to dim_shops.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_shops')
+                field: shop_id
+        entity:
+          type: foreign
+          name: shop
+      - name: cauldron_id
+        data_type: varchar
+        description: Operational cauldron identifier.
+        dimension:
+          type: categorical
+      - name: quality_check
+        data_type: varchar
+        description: Lowercased brew quality result.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [fail, pass]
+        dimension:
+          type: categorical
+      - name: brewer_name
+        data_type: varchar
+        description: Name of the brewer.
+        dimension:
+          type: categorical
+      - name: batch_size
+        data_type: integer
+        description: Potion units produced in the batch.
+      - name: brew_duration_minutes
+        data_type: integer
+        description: Brew duration in minutes; nulls remain null.
+      - name: brewed_at
+        data_type: timestamp_ntz
+        description: Brew timestamp.
+        granularity: second
+        dimension:
+          type: time
+      - name: brewed_date
+        data_type: date
+        description: Calendar date derived from brewed_at.
+        granularity: day
+        dimension:
+          type: time
+    semantic_model:
+      enabled: true
+      name: fct_brews
+    agg_time_dimension: brewed_date
+    metrics:
+      - name: total_brews
+        description: Count of production batches.
+        type: simple
+        label: Total brews
+        agg: count
+        expr: brew_id
+        agg_time_dimension: brewed_date
+      - name: total_units_brewed
+        description: Total potion units produced across batches.
+        type: simple
+        label: Total units brewed
+        agg: sum
+        expr: batch_size
+        agg_time_dimension: brewed_date
+      - name: average_batch_size
+        description: Average number of potion units produced per batch.
+        type: simple
+        label: Average batch size
+        agg: average
+        expr: batch_size
+        agg_time_dimension: brewed_date
+      - name: average_recorded_brew_duration_minutes
+        description: Average brew duration in minutes across batches with a recorded duration.
+        type: simple
+        label: Average recorded brew duration (minutes)
+        agg: average
+        expr: brew_duration_minutes
+        agg_time_dimension: brewed_date

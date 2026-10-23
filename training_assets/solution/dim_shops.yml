@@ -1,0 +1,53 @@
+version: 2
+
+models:
+  - name: dim_shops
+    description: Shop dimension — one row per shop (15 shops).
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: shop_id
+        data_type: varchar
+        description: Primary key — shop identifier.
+        data_tests: [unique, not_null]
+        entity:
+          type: primary
+          name: shop
+      - name: shop_name
+        data_type: varchar
+        description: Shop display name.
+        dimension:
+          type: categorical
+      - name: city
+        data_type: varchar
+        description: City.
+        dimension:
+          type: categorical
+      - name: region
+        data_type: varchar
+        description: Canonical region.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["Northern Reaches", "Ember Coast", "Silverwood", "The Marshlands", "Crystal Vale"]
+        dimension:
+          type: categorical
+      - name: opened_at
+        data_type: date
+        description: Date the shop opened.
+        granularity: day
+        dimension:
+          type: time
+    semantic_model:
+      enabled: true
+      name: dim_shops
+    agg_time_dimension: opened_at
+    metrics:
+      - name: total_shops
+        description: Count of shops in the current shop dimension.
+        type: simple
+        label: Total shops
+        agg: count
+        expr: shop_id
+        agg_time_dimension: opened_at

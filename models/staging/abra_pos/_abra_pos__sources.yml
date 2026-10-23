@@ -1,0 +1,36 @@
+version: 2
+
+# The raw Abracadabra POS tables as dbt sources. The schema follows the same
+# default naming convention as the seeds: <target.schema>_raw. This keeps each
+# workshop environment isolated while source() reads the relations its seeds create.
+
+sources:
+  - name: abra_pos
+    description: "Abracadabra POS — point-of-sale (potions, orders, order items, payments)."
+    database: analytics
+    schema: "{{ target.schema }}_raw"
+    tables:
+      - name: raw_potions
+        description: "Potion catalog (120 rows)."
+        columns:
+          - name: potion_sku
+            description: Primary key — potion SKU (POT-0001).
+            data_tests: [unique, not_null]
+      - name: raw_orders
+        description: "Orders — one row per order."
+        columns:
+          - name: order_id
+            description: Primary key — order identifier (ORD-000001).
+            data_tests: [unique, not_null]
+      - name: raw_order_items
+        description: "Order line items — one row per potion per order."
+        columns:
+          - name: order_item_id
+            description: Primary key — line item identifier (ITM-000001).
+            data_tests: [unique, not_null]
+      - name: raw_payments
+        description: "Payment attempts — splits, failures, and refunds each get a row."
+        columns:
+          - name: payment_id
+            description: Primary key — payment identifier (PAY-000001).
+            data_tests: [unique, not_null]

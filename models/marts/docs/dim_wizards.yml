@@ -1,0 +1,94 @@
+version: 2
+
+models:
+  - name: dim_wizards
+    description: Wizard (customer) dimension with current guild membership.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: customer_id
+        data_type: varchar
+        description: Primary key — wizard identifier.
+        data_tests: [unique, not_null]
+        entity:
+          type: primary
+          name: customer
+      - name: full_name
+        data_type: varchar
+        description: Wizard full name.
+      - name: email
+        data_type: varchar
+        description: Contact email (nullable).
+      - name: home_region
+        data_type: varchar
+        description: Conformed home region.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["Northern Reaches", "Ember Coast", "Silverwood", "The Marshlands", "Crystal Vale"]
+        dimension:
+          type: categorical
+      - name: favored_discipline
+        data_type: varchar
+        description: Favored magical discipline (lowercased).
+        dimension:
+          type: categorical
+      - name: birth_year
+        data_type: integer
+        description: Year of birth.
+      - name: guild_id
+        data_type: varchar
+        description: Current guild FK (nullable).
+      - name: guild_name
+        data_type: varchar
+        description: Current guild name (nullable).
+        dimension:
+          type: categorical
+      - name: membership_tier
+        data_type: varchar
+        description: Current membership tier (nullable).
+        dimension:
+          type: categorical
+      - name: is_guild_member
+        data_type: boolean
+        description: Whether the wizard currently belongs to a guild.
+        data_tests: [not_null]
+        dimension:
+          type: categorical
+      - name: signed_up_at
+        data_type: date
+        description: Signup date.
+        granularity: day
+        dimension:
+          type: time
+      - name: member_since
+        data_type: date
+        description: Current-membership start date (nullable).
+    semantic_model:
+      enabled: true
+      name: dim_wizards
+    agg_time_dimension: signed_up_at
+    metrics:
+      - name: registered_customers
+        description: Count of registered customers by signup date.
+        type: simple
+        label: Registered customers
+        agg: count
+        expr: customer_id
+        agg_time_dimension: signed_up_at
+      - name: guild_members
+        description: Count of current customers who belong to a guild.
+        type: simple
+        label: Guild members
+        agg: count
+        expr: customer_id
+        agg_time_dimension: signed_up_at
+        filter: |
+          {{ Dimension('customer__is_guild_member') }} = true
+      - name: guild_membership_rate
+        description: Current guild members divided by all registered customers.
+        type: ratio
+        label: Guild membership rate
+        numerator: guild_members
+        denominator: registered_customers

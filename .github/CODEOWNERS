@@ -1,0 +1,39 @@
+# Training placeholder ownership map
+#
+# Replace @example-org/* with teams/users in the adopting organization.
+# This is an accountability and review-routing example; branch protection and
+# platform permissions determine whether review is required before merge/deploy.
+
+# Default owner for all source-controlled project assets.
+* @example-org/analytics-engineering
+
+# Always-on security and data-handling policy.
+/SECURITY.md @example-org/analytics-governance
+
+# AI instructions, task routing, and reusable agent skills.
+# Replace this sample owner with the team accountable for governing AI-assisted work.
+/AGENTS.md @example-org/analytics-governance
+/.agents/ @example-org/analytics-governance
+
+# Public data products, contracts, and governed semantic interfaces.
+/models/marts/ @example-org/analytics-engineering @example-org/data-product-owners
+/models/marts/_marts.yml @example-org/analytics-engineering @example-org/data-product-owners
+/models/marts/_semantic_models.yml @example-org/analytics-engineering @example-org/data-product-owners
+/models/marts/metrics.yml @example-org/analytics-engineering @example-org/data-product-owners
+
+# Shared dbt behavior and package/project configuration.
+/macros/ @example-org/analytics-engineering @example-org/data-platform
+/dbt_project.yml @example-org/analytics-engineering @example-org/data-platform
+/packages.yml @example-org/analytics-engineering @example-org/data-platform
+
+# CI, review automation, and PR-process controls.
+/.github/workflows/ @example-org/data-platform
+/.github/pull_request_template.md @example-org/analytics-governance @example-org/data-platform
+/.github/CODEOWNERS @example-org/analytics-governance @example-org/data-platform
+/ci/ @example-org/data-platform
+
+# Reference state, starter manifest, and facilitator materials.
+
+/training_assets/reference/ @example-org/analytics-governance
+/training_assets/trainee_starter_manifest.md @example-org/analytics-governance
+/training_assets/demo_outlines/ @example-org/analytics-governance

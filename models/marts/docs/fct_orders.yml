@@ -1,0 +1,133 @@
+version: 2
+
+models:
+  - name: fct_orders
+    description: Order-grain fact with revenue, payment behavior, and conformed FKs. Order-grain semantic model over fct_orders.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: order_id
+        data_type: varchar
+        description: Primary key — order identifier.
+        data_tests: [unique, not_null]
+        entity:
+          type: primary
+          name: order_id
+      - name: customer_id
+        data_type: varchar
+        description: FK to dim_wizards.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_wizards')
+                field: customer_id
+        entity:
+          type: foreign
+          name: customer
+      - name: shop_id
+        data_type: varchar
+        description: Shop identifier, validated against the existing Alembic Ops shop staging model.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_alembic_ops__shops')
+                field: shop_id
+        entity:
+          type: foreign
+          name: shop
+      - name: fulfillment_region
+        data_type: varchar
+        description: Region of the fulfilling shop.
+        dimension:
+          type: categorical
+      - name: is_home_region_order
+        data_type: boolean
+        description: True when the fulfilling shop is in the customer's conformed home region.
+        data_tests: [not_null]
+        dimension:
+          type: categorical
+      - name: order_status
+        data_type: varchar
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [completed, returned, cancelled, placed]
+        dimension:
+          type: categorical
+      - name: channel
+        data_type: varchar
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [in_store, courier_owl, marketplace]
+        dimension:
+          type: categorical
+      - name: line_item_count
+        data_type: integer
+      - name: total_quantity
+        data_type: integer
+      - name: gross_revenue_gold
+        data_type: number(38, 2)
+      - name: discount_gold
+        data_type: number(38, 2)
+      - name: net_revenue_gold
+        data_type: number(38, 2)
+        data_tests: [not_null]
+      - name: amount_paid_gold
+        data_type: number(38, 2)
+      - name: is_split_payment
+        data_type: boolean
+      - name: had_failed_attempt
+        data_type: boolean
+      - name: is_refunded
+        data_type: boolean
+      - name: ordered_at
+        data_type: timestamp_ntz
+        data_tests: [not_null]
+      - name: ordered_date
+        data_type: date
+        dimension:
+          type: time
+        granularity: day
+    semantic_model:
+      enabled: true
+      name: fct_orders
+    agg_time_dimension: ordered_date
+    metrics:
+      - name: total_orders
+        description: Count of completed orders.
+        type: simple
+        label: Total orders
+        agg: count
+        agg_time_dimension: ordered_date
+        expr: order_id
+        filter: |
+          {{ Dimension('order_id__order_status') }} = 'completed'
+      - name: total_gross_revenue
+        description: Gross item revenue before discounts for completed orders, in gold crowns.
+        type: simple
+        label: Total gross revenue (gold)
+        agg: sum
+        agg_time_dimension: ordered_date
+        expr: gross_revenue_gold
+        filter: |
+          {{ Dimension('order_id__order_status') }} = 'completed'
+      - name: total_net_revenue
+        description: Gross item revenue less discounts for completed orders, in gold crowns.
+        type: simple
+        label: Total net revenue (gold)
+        agg: sum
+        agg_time_dimension: ordered_date
+        expr: net_revenue_gold
+        filter: |
+          {{ Dimension('order_id__order_status') }} = 'completed'
+      - name: purchasing_customers
+        description: Distinct customers with at least one completed order.
+        type: simple
+        label: Purchasing customers
+        agg: count_distinct
+        agg_time_dimension: ordered_date
+        expr: customer_id
+        filter: |
+          {{ Dimension('order_id__order_status') }} = 'completed'

@@ -1,0 +1,17 @@
+version: 2
+
+# Governed ratio metrics for completed-order commercial analysis.
+metrics:
+  - name: average_order_value
+    description: Total net revenue divided by total completed orders, in gold crowns.
+    type: ratio
+    label: Average order value (gold)
+    numerator: total_net_revenue
+    denominator: total_orders
+
+  - name: orders_per_purchasing_customer
+    description: Total completed orders divided by distinct customers with a completed order.
+    type: ratio
+    label: Orders per purchasing customer
+    numerator: total_orders
+    denominator: purchasing_customers
